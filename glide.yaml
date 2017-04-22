@@ -1,0 +1,4 @@
+package: github.com/simonsargeant/gophoenix
+import:
+- package: github.com/gorilla/websocket
+  version: ^1.1.0
