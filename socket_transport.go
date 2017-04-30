@@ -9,6 +9,8 @@ type socketTransport struct {
 	socket *websocket.Conn
 	cr ConnectionReceiver
 	mr messageReceiver
+	close chan struct{}
+	done chan struct{}
 }
 
 func (st *socketTransport) Connect(url string) error {
@@ -30,15 +32,33 @@ func (st *socketTransport) Push(data interface{}) error {
 	return st.socket.WriteJSON(data)
 }
 
+func (st *socketTransport) Close() {
+	st.close<- struct {}{}
+	<-st.done
+}
+
 func (st *socketTransport) listen() {
-	defer st.socket.Close()
-	defer st.cr.NotifyDisconnect()
+	defer st.stop()
 	for {
+		select {
+		case <-st.close:
+			return
+		default:
+		}
+
 		var msg *Message
 		err := st.socket.ReadJSON(msg)
+
 		if err != nil {
 			return
 		}
+
 		st.mr.notifyMessage(msg)
 	}
+}
+
+func (st *socketTransport) stop() {
+	st.socket.Close()
+	st.cr.NotifyDisconnect()
+	func() {st.done<- struct{}{}} ()
 }

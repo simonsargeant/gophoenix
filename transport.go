@@ -3,6 +3,7 @@ package gophoenix
 type Transport interface {
 	Connect(url string) error
 	Push(data interface{}) error
+	Close()
 }
 
 type notificationReceiver interface {
