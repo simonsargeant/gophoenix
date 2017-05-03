@@ -10,7 +10,4 @@ WIP Phoenix channel client for go.
 
 ## TODO
 
-- -Message refs for replies-
 - HTTP Headers for websocket
-- Leaving channel handling (unsubbing from router, closing transport c)
-- -Disconnect handling-
