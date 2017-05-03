@@ -1,7 +1,7 @@
 package gophoenix
 
 type Transport interface {
-	Connect(url string) error
+	Connect(url string, messageReceiver MessageReceiver, connectionReceiver ConnectionReceiver) error
 	Push(data interface{}) error
 	Close()
 }

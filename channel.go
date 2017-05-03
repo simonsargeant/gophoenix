@@ -10,7 +10,10 @@ type Channel struct {
 	t Transport
 	rc refCounter
 	rr *replyRouter
+	ln leaveNotifier
 }
+
+type leaveNotifier func ()
 
 type refCounter interface {
 	nextRef() int64
@@ -22,13 +25,19 @@ func (ch *Channel) Join(payload interface{}) error {
 }
 
 func (ch *Channel) Leave(payload interface{}) error {
+	defer ch.ln()
 	ref := ch.rc.nextRef()
 	return ch.sendMessage(ref, leaveEvent, payload)
 }
 
 func (ch *Channel) Push(event event, payload interface{}, replyHandler func(payload interface{})) error {
 	ref := ch.rc.nextRef()
-	ch.rr.subscribe()
+	ch.rr.subscribe(ref, replyHandler)
+	return ch.sendMessage(ref, event, payload)
+}
+
+func (ch *Channel) PushNoReply(event event, payload interface{}, replyHandler func(payload interface{})) error {
+	ref := ch.rc.nextRef()
 	return ch.sendMessage(ref, event, payload)
 }
 

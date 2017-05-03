@@ -9,7 +9,7 @@ type replyRouter struct {
 
 type replyCallback func (payload interface{})
 
-func NewReplyRouter() *replyRouter {
+func newReplyRouter() *replyRouter {
 	return &replyRouter{
 		rr: make(map[int64]replyCallback),
 	}

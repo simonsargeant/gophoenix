@@ -8,12 +8,19 @@ import (
 type socketTransport struct {
 	socket *websocket.Conn
 	cr ConnectionReceiver
-	mr messageReceiver
+	mr MessageReceiver
 	close chan struct{}
 	done chan struct{}
 }
 
-func (st *socketTransport) Connect(url string) error {
+type MessageReceiver interface {
+	NotifyMessage(msg *Message)
+}
+
+func (st *socketTransport) Connect(url string, mr MessageReceiver, cr ConnectionReceiver) error {
+	st.mr = mr
+	st.cr = cr
+
 	// TODO Add origin header, handle resp from dial
 	conn, _, err := websocket.DefaultDialer.Dial(url, http.Header{})
 
@@ -53,7 +60,7 @@ func (st *socketTransport) listen() {
 			return
 		}
 
-		st.mr.notifyMessage(msg)
+		st.mr.NotifyMessage(msg)
 	}
 }
 
