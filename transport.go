@@ -7,7 +7,7 @@ type Transport interface {
 	Close()
 }
 
-// MessageReceiver is called by the Transport to notify of a message
+// MessageReceiver is called by the Transport to notify of a message.
 type MessageReceiver interface {
 	NotifyMessage(msg *Message)
 }

@@ -53,7 +53,7 @@ func (st *socketTransport) listen() {
 		err := st.socket.ReadJSON(msg)
 
 		if err != nil {
-			return
+			continue
 		}
 
 		st.mr.NotifyMessage(msg)

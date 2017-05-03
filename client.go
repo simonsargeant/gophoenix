@@ -1,6 +1,10 @@
 package gophoenix
 
-// Client is the entry point for a phoenix channel connection
+import (
+	"errors"
+)
+
+// Client is the entry point for a phoenix channel connection.
 type Client struct {
 	t Transport
 	mr *messageRouter
@@ -16,22 +20,41 @@ func NewWebsocketClient(cr ConnectionReceiver) *Client {
 }
 
 // Connect should be called to establish the connection through the transport.
-func (c *Client) Connect(url string) {
+func (c *Client) Connect(url string) error {
+	if c.t == nil {
+		return errors.New("transport not provided")
+	}
+
 	mr := newMessageRouter()
-	c.t.Connect(url, mr, c.cr)
+
+	return c.t.Connect(url, mr, c.cr)
 }
 
-// Close closes the connection via the transport
-func (c *Client) Close() {
+// Close closes the connection via the transport.
+func (c *Client) Close() error {
+	if c.t == nil {
+		return errors.New("transport not provided")
+	}
+
 	c.t.Close()
+
+	return nil
 }
 
 // Join subscribes to a channel via the transport and returns a reference to the channel.
-func (c *Client) Join(callbacks ChannelReceiver, topic string, payload interface{}) *Channel {
-	var start int64
+func (c *Client) Join(callbacks ChannelReceiver, topic string, payload interface{}) (*Channel, error) {
+	if c.t == nil {
+		return nil, errors.New("transport not provided")
+	}
+
 	rr := newReplyRouter()
-	ch := &Channel{topic: topic, t: c.t, rc: &atomicRef{ref: &start}, rr: rr, ln: func() {c.mr.unsubscribe(topic)}}
+	ch := &Channel{topic: topic, t: c.t, rc: &atomicRef{ref: new(int64)}, rr: rr, ln: func() {c.mr.unsubscribe(topic)}}
 	c.mr.subscribe(topic, callbacks, rr)
-	ch.join(payload)
-	return ch
+	err := ch.join(payload)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ch, nil
 }
