@@ -20,7 +20,7 @@ func NewMessageRouter() *messageRouter {
 	}
 }
 
-func (mr messageRouter) NotifyMessage(msg *Message) {
+func (mr *messageRouter) NotifyMessage(msg *Message) {
 	mr.mapLock.RLock()
 	tr, ok := mr.tr[msg.Topic]
 	mr.mapLock.Unlock()
@@ -44,13 +44,13 @@ func (mr messageRouter) NotifyMessage(msg *Message) {
 	}
 }
 
-func (mr messageRouter) subscribe(topic string, cr ChannelReceiver, rr *replyRouter) {
+func (mr *messageRouter) subscribe(topic string, cr ChannelReceiver, rr *replyRouter) {
 	mr.mapLock.Lock()
 	defer mr.mapLock.Unlock()
 	mr.tr[topic] = &topicReceiver{cr: cr, rr: rr}
 }
 
-func (mr messageRouter) unsubscribe(topic string) {
+func (mr *messageRouter) unsubscribe(topic string) {
 	mr.mapLock.Lock()
 	defer mr.mapLock.Unlock()
 	delete(mr.tr, topic)
