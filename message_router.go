@@ -13,7 +13,7 @@ type topicReceiver struct {
 	rr *replyRouter
 }
 
-func NewMessageRouter() *messageRouter {
+func newMessageRouter() *messageRouter {
 	return &messageRouter{
 		tr: make(map[string]*topicReceiver),
 		sub: make(chan ChannelReceiver),
@@ -29,14 +29,14 @@ func (mr *messageRouter) NotifyMessage(msg *Message) {
 	}
 
 	switch msg.Event {
-	case replyEvent:
+	case ReplyEvent:
 		tr.rr.routeReply(msg)
-	case joinEvent:
+	case JoinEvent:
 		tr.cr.OnJoin(msg.Payload)
-	case errorEvent:
+	case ErrorEvent:
 		tr.cr.OnJoinError(msg.Payload)
 		mr.unsubscribe(msg.Topic)
-	case closeEvent:
+	case CloseEvent:
 		tr.cr.OnChannelClose(msg.Payload)
 		mr.unsubscribe(msg.Topic)
 	default:

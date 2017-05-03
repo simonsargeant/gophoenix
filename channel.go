@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+// Channel represents a subscription to a topic. It is returned from the Client after joining a topic.
 type Channel struct {
 	topic string
 	t Transport
@@ -19,29 +20,32 @@ type refCounter interface {
 	nextRef() int64
 }
 
-func (ch *Channel) Join(payload interface{}) error {
-	ref := ch.rc.nextRef()
-	return ch.sendMessage(ref, joinEvent, payload)
-}
-
+// Leave notifies the channel to unsubscribe from messages on the topic.
 func (ch *Channel) Leave(payload interface{}) error {
 	defer ch.ln()
 	ref := ch.rc.nextRef()
-	return ch.sendMessage(ref, leaveEvent, payload)
+	return ch.sendMessage(ref, LeaveEvent, payload)
 }
 
-func (ch *Channel) Push(event event, payload interface{}, replyHandler func(payload interface{})) error {
+// Push sends a message on the topic.
+func (ch *Channel) Push(event Event, payload interface{}, replyHandler func(payload interface{})) error {
 	ref := ch.rc.nextRef()
 	ch.rr.subscribe(ref, replyHandler)
 	return ch.sendMessage(ref, event, payload)
 }
 
-func (ch *Channel) PushNoReply(event event, payload interface{}, replyHandler func(payload interface{})) error {
+// PushNoReply sends a message on the topic but does not provide a callback to receive replies.
+func (ch *Channel) PushNoReply(event Event, payload interface{}) error {
 	ref := ch.rc.nextRef()
 	return ch.sendMessage(ref, event, payload)
 }
 
-func (ch *Channel) sendMessage(ref int64, event event, payload interface{}) error {
+func (ch *Channel) join(payload interface{}) error {
+	ref := ch.rc.nextRef()
+	return ch.sendMessage(ref, JoinEvent, payload)
+}
+
+func (ch *Channel) sendMessage(ref int64, event Event, payload interface{}) error {
 	msg := &Message{
 		Topic: ch.topic,
 		Event: event,

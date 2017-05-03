@@ -13,10 +13,6 @@ type socketTransport struct {
 	done chan struct{}
 }
 
-type MessageReceiver interface {
-	NotifyMessage(msg *Message)
-}
-
 func (st *socketTransport) Connect(url string, mr MessageReceiver, cr ConnectionReceiver) error {
 	st.mr = mr
 	st.cr = cr
